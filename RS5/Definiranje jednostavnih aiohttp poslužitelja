@@ -1,0 +1,40 @@
+from aiohttp import web
+
+proizvodi = [
+    {"naziv": "Jabuka", "cijena": 2.5, "količina": 100},
+    {"naziv": "Kruška", "cijena": 3.0, "količina": 50},
+    {"naziv": "Banana", "cijena": 1.8, "količina": 150}
+]
+
+korisnici = [
+    {"ime": "Ivo", "godine": 25},
+    {"ime": "Ana", "godine": 17},
+    {"ime": "Marko", "godine": 19},
+    {"ime": "Maja", "godine": 16},
+    {"ime": "Iva", "godine": 22}
+]
+
+async def get_proizvodi(request):
+    return web.json_response(proizvodi)
+
+async def post_proizvodi(request):
+    data = await request.json()
+    if all(key in data for key in ["naziv", "cijena", "količina"]):
+        proizvodi.append(data)
+        return web.json_response(proizvodi)
+    return web.json_response({"error": "Pogrešni podaci"}, status=400)
+
+async def get_punoljetni(request):
+    punoljetni = [korisnik for korisnik in korisnici if korisnik["godine"] > 18]
+    return web.json_response(punoljetni)
+
+app_proizvodi = web.Application()
+app_proizvodi.router.add_get("/proizvodi", get_proizvodi)
+app_proizvodi.router.add_post("/proizvodi", post_proizvodi)
+
+app_korisnici = web.Application()
+app_korisnici.router.add_get("/punoljetni", get_punoljetni)
+
+if __name__ == "__main__":
+    web.run_app(app_proizvodi, port=8081)
+    web.run_app(app_korisnici, port=8082)
