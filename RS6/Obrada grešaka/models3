@@ -1,0 +1,18 @@
+from pydantic import BaseModel, Field
+from typing import Optional
+
+class BaseCar(BaseModel):
+    marka: str
+    model: str
+    godina_proizvodnje: int = Field(ge=1960, description="Godina proizvodnje mora biti veća od 1960.")
+    cijena: float = Field(ge=0, description="Cijena mora biti veća ili jednaka 0.")
+    boja: str
+
+class Car(BaseCar):
+    id: int
+
+class CreateCar(BaseCar):
+    pass
+
+class CarWithPDV(Car):
+    cijena_pdv: float
