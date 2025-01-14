@@ -1,0 +1,20 @@
+from fastapi import FastAPI
+from models2 import Knjiga, Izdavac, Admin, RestaurantOrder, CCTVFrame, Jelo
+
+app = FastAPI()
+
+@app.post("/knjige")
+def dodaj_knjigu(knjiga: Knjiga):
+    return {"poruka": "Knjiga uspješno dodana", "knjiga": knjiga}
+
+@app.post("/admini")
+def dodaj_admina(admin: Admin):
+    return {"poruka": "Admin uspješno dodan", "admin": admin}
+
+@app.post("/narudzbe")
+def dodaj_narudzbu(narudzba: RestaurantOrder):
+    return {"poruka": "Narudžba uspješno dodana", "narudzba": narudzba}
+
+@app.post("/cctv")
+def dodaj_cctv_frame(frame: CCTVFrame):
+    return {"poruka": "CCTV frame uspješno dodan", "frame": frame}
