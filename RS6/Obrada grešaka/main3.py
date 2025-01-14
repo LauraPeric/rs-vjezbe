@@ -1,0 +1,51 @@
+from fastapi import FastAPI, HTTPException, Query
+from models import Car, CreateCar, CarWithPDV
+from typing import List, Optional
+
+app = FastAPI()
+
+automobili = [
+    {"id": 1, "marka": "Toyota", "model": "Corolla", "godina_proizvodnje": 2015, "cijena": 10000, "boja": "plava"},
+    {"id": 2, "marka": "Volkswagen", "model": "Golf", "godina_proizvodnje": 2018, "cijena": 15000, "boja": "crvena"},]
+
+# dohvacanje automobila po god i cijenama
+@app.get("/automobili", response_model=List[Car])
+def get_automobili(
+    min_cijena: Optional[float] = Query(None, ge=0, description="Minimalna cijena mora biti veća ili jednaka 0."),
+    max_cijena: Optional[float] = None,
+    min_godina: Optional[int] = Query(None, ge=1960, description="Minimalna godina mora biti veća ili jednaka 1960."),
+    max_godina: Optional[int] = None,):
+      
+    if min_cijena and max_cijena and min_cijena > max_cijena:
+        raise HTTPException(status_code=400, detail="Minimalna cijena ne može biti veća od maksimalne cijene.")
+    if min_godina and max_godina and min_godina > max_godina:
+        raise HTTPException(status_code=400, detail="Minimalna godina ne može biti veća od maksimalne godine.")
+    
+    rezultati = [
+        Car(**auto) for auto in automobili
+        if (min_cijena is None or auto["cijena"] >= min_cijena)
+        and (max_cijena is None or auto["cijena"] <= max_cijena)
+        and (min_godina is None or auto["godina_proizvodnje"] >= min_godina)
+        and (max_godina is None or auto["godina_proizvodnje"] <= max_godina)]
+    return rezultati
+
+# dohvacanje automobilapo pdbu
+@app.get("/automobili/{id}", response_model=Car)
+def get_automobil_by_id(id: int):
+    auto = next((auto for auto in automobili if auto["id"] == id), None)
+    if not auto:
+        raise HTTPException(status_code=404, detail="Automobil nije pronađen.")
+    return Car(**auto)
+
+# dodavanje automobila
+@app.post("/automobili", response_model=CarWithPDV)
+def add_automobil(novi_auto: CreateCar):
+    for auto in automobili:
+        if auto["marka"] == novi_auto.marka and auto["model"] == novi_auto.model:
+            raise HTTPException(status_code=400, detail="Automobil već postoji u bazi podataka.")
+    
+    novi_id = max(auto["id"] for auto in automobili) + 1 if automobili else 1
+    cijena_pdv = novi_auto.cijena * 1.25 # dodavanje novog
+    novi_automobil = CarWithPDV(id=novi_id, cijena_pdv=cijena_pdv, **novi_auto.dict())
+    automobili.append(novi_automobil.dict())
+    return novi_automobil
